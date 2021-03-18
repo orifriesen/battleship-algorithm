@@ -1,6 +1,7 @@
 import numpy as np
 
-from shipInit import shipTypeList, shipList, boardSize, gameBoard
+from numpy import unravel_index
+from shipInit import *
 
 def verticalCheck(w, algorithmGrid, gameBoard):
 	boatSize = w - 1
@@ -30,20 +31,61 @@ def hunt(gameBoard, boardSize):
 		algorithmGrid = verticalCheck(w, algorithmGrid, gameBoard)
 	return algorithmGrid
 
-test = hunt(gameBoard, boardSize)
+def findNextPossibleHits(targetHits, targetMisses):
+	possibleNextHits = []
+	for x in range(boardSize):
+		for y in range(boardSize):
+			if targetHits[x][y] == 1:
+				if x > 0 and targetHits[x-1][y] != 1 and targetMisses[x-1][y] != 1:
+					possibleNextHits.append((x-1, y))
+				if x + 1 < boardSize and targetHits[x+1][y] != 1 and targetMisses[x+1][y] != 1:
+					possibleNextHits.append((x+1, y))
+				if y > 0 and targetHits[x][y-1] != 1 and targetMisses[x][y-1] != 1:
+					possibleNextHits.append((x, y-1))
+				if y + 1 < boardSize and targetHits[x][y+1] != 1 and targetMisses[x][y-1] != 1:
+					possibleNextHits.append((x, y+1))
+	return possibleNextHits
+			
 
-for row in test:
-	print(row)
-print()
-for ship in shipList:
-	for coord in ship:
-		i, j = coord
-		gameBoard[i][j] = 1
+def target(firstHit):
+	targetHits = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
+	targetMisses = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
+	targetHits[firstHit] = 1
+	return findNextPossibleHits(targetHits, targetMisses)
 
-for row in gameBoard:
-	print(row)
-print()
-test = hunt(gameBoard, boardSize)
+def sunkShipTest(targetHits):
+	if set(any(x in shipList)).issubset (set(targetHits)):
+		return True
+	else:
+		return False
 
-for row in test:
-	print(row)
+def allShipSunk(gameBoard, hits, boardSize):
+	sunk = True
+	for y in range(boardSize):
+		for x in range(boardSize):
+			if shipsOnGameBoard[x][y] == 1 and hits[x][y] != 1:
+				sunk = False
+	if sunk == False:
+		return False
+	else:
+		return True
+
+#for ship in shipList:
+#	for coord in ship:
+#		i, j = coord
+#		gameBoard[i][j] = 1
+
+#while allShipSunk() is False:
+for x in range(25):
+	algorithm = hunt(gameBoard, boardSize)
+	nextTest = unravel_index(algorithm.argmax(), algorithm.shape)
+	gameBoard[nextTest] = 1
+	#print(algorithm)
+	print(nextTest)
+	#print(gameBoard)
+	if any(nextTest in y for y in shipList):
+		print("hit!!!!")
+		hits[nextTest] = 1
+		print(target(nextTest))
+
+	print(allShipSunk(gameBoard, hits, boardSize))
