@@ -44,20 +44,49 @@ def findNextPossibleHits(targetHits, targetMisses):
 					possibleNextHits.append((x, y-1))
 				if y + 1 < boardSize and targetHits[x][y+1] != 1 and targetMisses[x][y-1] != 1:
 					possibleNextHits.append((x, y+1))
+	print(possibleNextHits)
 	return possibleNextHits
-			
 
-def target(firstHit):
-	targetHits = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
-	targetMisses = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
-	targetHits[firstHit] = 1
-	return findNextPossibleHits(targetHits, targetMisses)
+def target(targetHits, algorithm, targetMisses):
+	possibleNextHits = findNextPossibleHits(targetHits, targetMisses)
+	#while len(possibleNextHits) >= 0:
+	for x in range(len(possibleNextHits)):
+		possibleNextHits = findNextPossibleHits(targetHits, targetMisses)
+		possibleArray = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
+		for x in possibleNextHits:
+			possibleArray[x] = algorithm[x]
+		nextTest = unravel_index(possibleArray.argmax(), possibleArray.shape)
+		print(nextTest)
+		if any(nextTest in y for y in shipList):
+			print("hit!!!")
+			print(hits)
+			hits[nextTest] = 1
+			targetHits[nextTest] = 1
+			if sunkShipTest(targetHits):
+				print("sunk ship!!!")
+				print(targetHits)
+				print(targetMisses)
+				return targetHits, targetMisses
+			target(targetHits, algorithm, targetMisses)
+			if sunkShipTest(targetHits):
+				print("sunk ship!!!")
+				return targetHits, targetMisses
+		else:
+			print("miss")
+			targetMisses[nextTest] = 1
+			gameBoard[nextTest] = 1
 
 def sunkShipTest(targetHits):
-	if set(any(x in shipList)).issubset (set(targetHits)):
-		return True
-	else:
-		return False
+	targetCoordList = []
+	for x in range(boardSize):
+		for y in range(boardSize):
+			if targetHits[x][y] == 1:
+				targetCoordList.append((x, y))
+	for x in shipList:
+		list1 = targetHits.tolist()
+		if x == targetCoordList:
+			return True
+	return False
 
 def allShipSunk(gameBoard, hits, boardSize):
 	sunk = True
@@ -76,16 +105,22 @@ def allShipSunk(gameBoard, hits, boardSize):
 #		gameBoard[i][j] = 1
 
 #while allShipSunk() is False:
-for x in range(25):
+for x in range(10):
 	algorithm = hunt(gameBoard, boardSize)
 	nextTest = unravel_index(algorithm.argmax(), algorithm.shape)
-	gameBoard[nextTest] = 1
-	#print(algorithm)
 	print(nextTest)
-	#print(gameBoard)
+	print(gameBoard)
 	if any(nextTest in y for y in shipList):
-		print("hit!!!!")
+		print("target!!!!")
 		hits[nextTest] = 1
-		print(target(nextTest))
 
-	print(allShipSunk(gameBoard, hits, boardSize))
+		targetHits = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
+		targetMisses = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
+		targetHits[nextTest] = 1
+
+		hit, miss = target(targetHits, algorithm, targetMisses)
+		gameBoard = hit + gameBoard
+		print("test!!!!!!!!")
+		print(gameBoard)
+	gameBoard[nextTest] = 1
+	print()
