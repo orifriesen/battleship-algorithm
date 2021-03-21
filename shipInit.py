@@ -1,5 +1,6 @@
 import numpy as np
 boardSize = 10
+numberOfTurns = 0
 gameBoard = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
 hits = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
 shipsOnGameBoard = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
