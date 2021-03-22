@@ -90,7 +90,8 @@ def sunkShipTest(targetHits):
 			for c in range(len(shipTypeList) - 1):
 				if shipTypeList[c] == len(x):
 					del shipTypeList[c]
-					return True
+					break
+			return True
 	return False
 
 def allShipSunk(gameBoard, hits, boardSize):
