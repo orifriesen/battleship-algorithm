@@ -57,7 +57,9 @@ def target(targetHits, algorithm, targetMisses):
 			possibleArray[x] = algorithm[x]
 		nextTest = unravel_index(possibleArray.argmax(), possibleArray.shape)
 		print("next shot:", nextTest)
-		if any(nextTest in y for y in shipList):
+
+		userInput = input("hit? y/n: ")
+		if userInput == 'y':
 			print("hit!!!")
 			numberOfTurns += 1
 			print("turn:",  numberOfTurns)
@@ -65,11 +67,11 @@ def target(targetHits, algorithm, targetMisses):
 			targetHits[nextTest] = 1
 			if sunkShipTest(targetHits):
 				print("sunk ship!!!")
-				return targetHits
+				return targetHits, targetMisses
 			target(targetHits, algorithm, targetMisses)
 			if sunkShipTest(targetHits):
 				print("sunk ship!!!")
-				return targetHits
+				return targetHits, targetMisses
 		else:
 			print("miss!!")
 			numberOfTurns += 1
@@ -79,19 +81,19 @@ def target(targetHits, algorithm, targetMisses):
 		print()
 
 def sunkShipTest(targetHits):
+	userInput = input("sunk ship? y/n: ")
 	targetCoordList = []
-	for x in range(boardSize):
-		for y in range(boardSize):
-			if targetHits[x][y] == 1:
-				targetCoordList.append((x, y))
-	for x in shipList:
-		list1 = targetHits.tolist()
-		if x == targetCoordList:
-			for c in range(len(shipTypeList) - 1):
-				if shipTypeList[c] == len(x):
-					del shipTypeList[c]
-					return True
-	return False
+	if userInput == 'y':
+		for x in range(boardSize):
+			for y in range(boardSize):
+				if targetHits[x][y] == 1:
+					targetCoordList.append((x,y))
+		for c in range(len(shipTypeList) - 1):
+			if shipTypeList[c] == len(targetCoordList):
+				del shipTypeList[c]
+				return True
+	else:
+		return False
 
 def allShipSunk(gameBoard, hits, boardSize):
 	sunk = True
@@ -104,11 +106,18 @@ def allShipSunk(gameBoard, hits, boardSize):
 	else:
 		return True
 
+#for ship in shipList:
+#	for coord in ship:
+#		i, j = coord
+#		gameBoard[i][j] = 1
+
+#while allShipSunk() is False:
 while allShipSunk(gameBoard, hits, boardSize) is False:
 	algorithm = hunt(gameBoard, boardSize)
 	nextTest = unravel_index(algorithm.argmax(), algorithm.shape)
 	print("next shot:", nextTest)
-	if any(nextTest in y for y in shipList):
+	userInput = input("hit? y/n: ")
+	if userInput == 'y':
 		print("hit!!!!")
 		hits[nextTest] = 1
 		numberOfTurns += 1
@@ -118,7 +127,7 @@ while allShipSunk(gameBoard, hits, boardSize) is False:
 		targetMisses = np.array([[0 for i in range(boardSize)] for j in range(boardSize)])
 		targetHits[nextTest] = 1
 
-		hit = target(targetHits, algorithm, targetMisses)
+		hit, miss = target(targetHits, algorithm, targetMisses)
 		gameBoard = hit + gameBoard
 	else:
 		print("miss!!")
